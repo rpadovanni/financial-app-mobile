@@ -24,7 +24,7 @@ const AuthProvider: React.FC = ({ children }) => {
             const storedToken = await AsyncStorage.getItem('@FinancialApp:token');
 
             if (storedUser && storedToken) {
-                api.defaults.headers['Authorization'] = `Bearer ${storedToken}`;
+                api.defaults.headers.authorization = `Bearer ${storedToken}`;
 
                 setUser(JSON.parse(storedUser));
             }
@@ -40,7 +40,7 @@ const AuthProvider: React.FC = ({ children }) => {
 
         setUser(response.user);
 
-        api.defaults.headers['Authorization'] = `Bearer ${response.token}`;
+        api.defaults.headers.authorization = `Bearer ${response.token}`;
 
         await AsyncStorage.setItem('@FinancialApp:user', JSON.stringify(response.user));
         await AsyncStorage.setItem('@FinancialApp:token', response.token);
@@ -48,7 +48,7 @@ const AuthProvider: React.FC = ({ children }) => {
 
     const signOut = async () => {
         await AsyncStorage.clear();
-        api.defaults.headers['Authorization'] = '';
+        api.defaults.headers.authorization = '';
 
         setUser(null);
     };
