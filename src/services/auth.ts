@@ -1,4 +1,6 @@
-export default function signIn() {
+import { ILoggedUser } from '../interfaces/IUser';
+
+export function signIn(): Promise<ILoggedUser> {
     return new Promise(resolve => {
         setTimeout(() => {
             resolve({

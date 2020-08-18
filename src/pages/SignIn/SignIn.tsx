@@ -1,18 +1,24 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Button, StyleSheet, Text } from 'react-native';
 
-// SERVICES
-import signIn from '../../services/auth';
+// CONTEXTS
+import { AuthContext } from '../../contexts/auth.context';
 
+// SIGN IN COMPONENT
 const SignIn: React.FC = () => {
-    const handleSignIn = async () => {
-        const response = await signIn();
-        console.log(response);
-    }
+    const { isLogged, user, signIn } = useContext(AuthContext);
+
+    const handleSignIn = () => {
+        signIn();
+    };
+
+    const text = isLogged ? 'is logged' : 'is NOT logged';
 
     return (
         <View style={styles.container}>
             <Text>Sing In Page!</Text>
+            <Text>{text}</Text>
+            <Text>{user?.name}</Text>
             <Button title='Sign In Button' onPress={handleSignIn} />
         </View>
     );
