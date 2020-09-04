@@ -1,15 +1,16 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
 import * as auth from '../services/auth';
-import { IUser } from '../interfaces/IUser';
+import { IUser, IUserCredentials } from '../interfaces/IUser';
 import api from '../services/api';
 
 interface IAuthContext {
-    isLogged: boolean;
-    user: IUser | null;
+    errorMessage: string | undefined;
     isLoading: boolean;
-    signIn(): Promise<void>;
+    isLogged: boolean;
+    signIn(userCredentials: IUserCredentials): Promise<void>;
     signOut(): void;
+    user: IUser | null;
 }
 
 const AuthContext = createContext<IAuthContext>({} as IAuthContext);
@@ -17,6 +18,7 @@ const AuthContext = createContext<IAuthContext>({} as IAuthContext);
 const AuthProvider: React.FC = ({ children }) => {
     const [user, setUser] = useState<IUser | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState();
 
     useEffect(() => {
         const loadStoredData = async () => {
@@ -35,15 +37,21 @@ const AuthProvider: React.FC = ({ children }) => {
         loadStoredData();
     }, []);
 
-    const signIn = async () => {
-        const response = await auth.signIn();
+    const signIn = async (userCredentials: IUserCredentials) => {
+        // TODO: Move logic to service
+        try {
+            const response = await api.post('/authenticate', userCredentials);
 
-        setUser(response.user);
+            const { user, token } = response.data;
+            setUser(user);
 
-        api.defaults.headers.authorization = `Bearer ${response.token}`;
+            api.defaults.headers.authorization = `Bearer ${token}`;
 
-        await AsyncStorage.setItem('@FinancialApp:user', JSON.stringify(response.user));
-        await AsyncStorage.setItem('@FinancialApp:token', response.token);
+            await AsyncStorage.setItem('@FinancialApp:user', JSON.stringify(user));
+            await AsyncStorage.setItem('@FinancialApp:token', token);
+        } catch (err) {
+            setErrorMessage(err.response.data.message);
+        }
     };
 
     const signOut = async () => {
@@ -54,7 +62,16 @@ const AuthProvider: React.FC = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ isLogged: !!user, user, isLoading, signIn, signOut }}>
+        <AuthContext.Provider
+            value={{
+                errorMessage,
+                isLoading,
+                isLogged: !!user,
+                signIn,
+                signOut,
+                user,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );

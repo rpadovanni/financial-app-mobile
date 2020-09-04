@@ -4,6 +4,12 @@ export interface ILoggedUser {
 }
 
 export interface IUser {
+    userId: number;
     name: string;
     email: string;
+}
+
+export interface IUserCredentials {
+    email: string;
+    password: string;
 }
